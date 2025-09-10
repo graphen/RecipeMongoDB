@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Unit of Measure - Recipe App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Can Delete -->
+                <div th:if="${canDelete}" class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Confirm Delete
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-warning me-2"></i>
+                            <strong>Warning!</strong> This action cannot be undone.
+                        </div>
+
+                        <p class="mb-4">
+                            Are you sure you want to delete the unit of measure 
+                            <strong th:text="${unitOfMeasure.description}"></strong>?
+                        </p>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-hashtag me-2"></i>ID:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${unitOfMeasure.id}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-tag me-2"></i>Description:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${unitOfMeasure.description}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-utensils me-2"></i>Usage:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Not used in any recipe ingredients
+                                </span>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/unitsofmeasure/{id}/delete(id=${unitOfMeasure.id})}" method="post" class="d-inline">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash me-2"></i>Yes, Delete Unit of Measure
+                                </button>
+                                <a th:href="@{/unitsofmeasure/{id}(id=${unitOfMeasure.id})}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Cannot Delete -->
+                <div th:if="${!canDelete}" class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Cannot Delete Unit of Measure
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-ban me-2"></i>
+                            <strong>Deletion Not Allowed!</strong> This unit of measure is currently in use.
+                        </div>
+
+                        <p class="mb-4">
+                            The unit of measure <strong th:text="${unitOfMeasure.description}"></strong> 
+                            cannot be deleted because it is currently being used in recipe ingredients.
+                        </p>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-hashtag me-2"></i>ID:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${unitOfMeasure.id}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-tag me-2"></i>Description:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${unitOfMeasure.description}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-utensils me-2"></i>Usage:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Used in <span th:text="${usageCount}"></span> 
+                                    <span th:text="${usageCount == 1 ? 'recipe ingredient' : 'recipe ingredients'}"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:href="@{/unitsofmeasure/{id}/edit(id=${unitOfMeasure.id})}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Edit Instead
+                            </a>
+                            <a th:href="@{/unitsofmeasure/{id}(id=${unitOfMeasure.id})}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            <span th:text="${canDelete ? 'Delete Information' : 'How to Delete This Unit of Measure'}"></span>
+                        </h6>
+                        <div th:if="${canDelete}">
+                            <p class="mb-0 small">
+                                This unit of measure is not used in any recipe ingredients and can be safely deleted. 
+                                This action cannot be undone, so please confirm your decision.
+                            </p>
+                        </div>
+                        <div th:if="${!canDelete}">
+                            <p class="mb-2 small">
+                                To delete this unit of measure, you must first:
+                            </p>
+                            <ol class="mb-0 small">
+                                <li>Remove this unit of measure from all recipe ingredients that use it, or</li>
+                                <li>Change the unit of measure for all affected recipe ingredients</li>
+                            </ol>
+                            <p class="mt-2 mb-0 small text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                <strong>Tip:</strong> You can edit the unit name instead if you want to rename it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Add confirmation dialog for delete action
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteForm = document.querySelector('form[method="post"]');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function(e) {
+                    const unitName = /*[[${unitOfMeasure.description}]]*/ 'this unit of measure';
+                    if (!confirm(`Are you absolutely sure you want to delete "${unitName}"? This action cannot be undone.`)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

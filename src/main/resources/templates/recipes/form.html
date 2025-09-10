@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${action + ' Recipe - Recipe App'}">Recipe App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom styles for image upload and validation -->
+    <style>
+        .image-upload-container {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .image-upload-container:hover {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .image-upload-container.has-image {
+            border-style: solid;
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        /* Enhanced validation styles */
+        .form-control.is-invalid, 
+        .form-select.is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-invalid:focus,
+        .form-select.is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .invalid-feedback {
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+            display: block;
+        }
+        
+        .field-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .error-icon {
+            color: #dc3545;
+            margin-right: 0.5rem;
+        }
+        
+        .required-asterisk {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-utensils me-2"></i>
+                            <span th:text="${action}">Create</span> Recipe
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Global Error Messages -->
+                        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span th:text="${errorMessage}"></span>
+                        </div>
+
+                        <form th:object="${recipe}" th:action="@{/recipes}" method="post" id="recipeForm" enctype="multipart/form-data" novalidate>
+ 
+                         <!-- Validation Error Summary -->
+                        <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger" role="alert">
+                            <h6><i class="fas fa-exclamation-circle me-2"></i>Please correct the following errors:</h6>
+                            <ul class="mb-0">
+                                <li th:each="error : ${#fields.allErrors()}" th:text="${error}">Error</li>
+                            </ul>
+                        </div>
+                        
+                            <!-- Hidden ID field for editing -->
+                            <input type="hidden" th:field="*{id}">
+                            <input type="hidden" th:field="*{notes.id}">
+
+                            <div class="row">
+                                <!-- Basic Information -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+                                    
+                                    <!-- Recipe Name with validation -->
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">
+                                            <i class="fas fa-tag me-2"></i>Recipe Name <span class="required-asterisk">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="description" 
+                                               th:field="*{description}"
+                                               th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''"
+                                               placeholder="Enter recipe name (3-255 characters)"
+                                               required
+                                               minlength="3"
+                                               maxlength="255">
+                                        <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle error-icon"></i>
+                                            <span th:errors="*{description}"></span>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Recipe name must be between 3 and 255 characters
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- Prep Time with validation -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="prepTime" class="form-label">
+                                                    <i class="fas fa-clock me-2"></i>Prep Time (min)
+                                                </label>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="prepTime" 
+                                                       th:field="*{prepTime}"
+                                                       th:classappend="${#fields.hasErrors('prepTime')} ? 'is-invalid' : ''"
+                                                       min="1"
+                                                       max="1000"
+                                                       placeholder="30">
+                                                <div th:if="${#fields.hasErrors('prepTime')}" class="invalid-feedback">
+                                                    <i class="fas fa-exclamation-circle error-icon"></i>
+                                                    <span th:errors="*{prepTime}"></span>
+                                                </div>
+                                                <div class="form-text">1-1000 min</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Cook Time with validation -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="cookTime" class="form-label">
+                                                    <i class="fas fa-fire me-2"></i>Cook Time (min)
+                                                </label>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="cookTime" 
+                                                       th:field="*{cookTime}"
+                                                       th:classappend="${#fields.hasErrors('cookTime')} ? 'is-invalid' : ''"
+                                                       min="1"
+                                                       max="1000"
+                                                       placeholder="45">
+                                                <div th:if="${#fields.hasErrors('cookTime')}" class="invalid-feedback">
+                                                    <i class="fas fa-exclamation-circle error-icon"></i>
+                                                    <span th:errors="*{cookTime}"></span>
+                                                </div>
+                                                <div class="form-text">1-1000 min</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Servings with validation -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="servings" class="form-label">
+                                                    <i class="fas fa-users me-2"></i>Servings
+                                                </label>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="servings" 
+                                                       th:field="*{servings}"
+                                                       th:classappend="${#fields.hasErrors('servings')} ? 'is-invalid' : ''"
+                                                       min="1"
+                                                       max="100"
+                                                       placeholder="4">
+                                                <div th:if="${#fields.hasErrors('servings')}" class="invalid-feedback">
+                                                    <i class="fas fa-exclamation-circle error-icon"></i>
+                                                    <span th:errors="*{servings}"></span>
+                                                </div>
+                                                <div class="form-text">1-100 servings</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="difficulty" class="form-label">
+                                            <i class="fas fa-star me-2"></i>Difficulty
+                                        </label>
+                                        <select class="form-select" 
+                                                id="difficulty" 
+                                                th:field="*{difficulty}"
+                                                th:classappend="${#fields.hasErrors('difficulty')} ? 'is-invalid' : ''">
+                                            <option value="">Select difficulty...</option>
+                                            <option th:each="diff : ${difficulties}" 
+                                                    th:value="${diff.name()}" 
+                                                    th:text="${diff.name()}">
+                                            </option>
+                                        </select>
+                                        <div th:if="${#fields.hasErrors('difficulty')}" class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle error-icon"></i>
+                                            <span th:errors="*{difficulty}"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="source" class="form-label">
+                                            <i class="fas fa-book me-2"></i>Source
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="source" 
+                                               th:field="*{source}"
+                                               th:classappend="${#fields.hasErrors('source')} ? 'is-invalid' : ''"
+                                               placeholder="e.g., Grandma's cookbook">
+                                        <div th:if="${#fields.hasErrors('source')}" class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle error-icon"></i>
+                                            <span th:errors="*{source}"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- URL with validation -->
+                                    <div class="mb-3">
+                                        <label for="url" class="form-label">
+                                            <i class="fas fa-link me-2"></i>URL
+                                        </label>
+                                        <input type="url" 
+                                               class="form-control" 
+                                               id="url" 
+                                               th:field="*{url}"
+                                               th:classappend="${#fields.hasErrors('url')} ? 'is-invalid' : ''"
+                                               placeholder="https://example.com/recipe">
+                                        <div th:if="${#fields.hasErrors('url')}" class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle error-icon"></i>
+                                            <span th:errors="*{url}"></span>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Please enter a valid URL (e.g., https://example.com)
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Upload Section -->
+                                    <div class="mb-3">
+                                        <label for="imageFile" class="form-label">
+                                            <i class="fas fa-camera me-2"></i>Recipe Image
+                                        </label>
+                                        <div class="image-upload-container" id="imageUploadContainer" onclick="document.getElementById('imageFile').click()">
+                                            <div id="imageUploadPlaceholder">
+                                                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                                <p class="mb-1">Click to upload recipe image</p>
+                                                <small class="text-muted">Supported formats: JPG, PNG, GIF (Max 5MB)</small>
+                                            </div>
+                                            <div id="imagePreviewContainer" style="display: none;">
+                                                <img id="imagePreview" src="#" alt="Recipe Preview" class="image-preview">
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" id="removeImageBtn">
+                                                        <i class="fas fa-trash me-1"></i>Remove Image
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Hidden file input -->
+                                        <input type="file" 
+                                               id="imageFile" 
+                                               name="imageFile" 
+                                               accept="image/jpeg,image/jpg,image/png,image/gif" 
+                                               style="display: none;">
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Upload a photo of your finished recipe to make it more appealing!
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Directions and Categories -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-3 text-primary"><i class="fas fa-list me-2"></i>Details</h5>
+                                    
+                                    <!-- Directions with validation -->
+                                    <div class="mb-3">
+                                        <label for="directions" class="form-label">
+                                            <i class="fas fa-list-ol me-2"></i>Directions <span class="required-asterisk">*</span>
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="directions" 
+                                                  th:field="*{directions}"
+                                                  th:classappend="${#fields.hasErrors('directions')} ? 'is-invalid' : ''"
+                                                  rows="8"
+                                                  placeholder="Enter detailed step-by-step directions..."
+                                                  required></textarea>
+                                        <div th:if="${#fields.hasErrors('directions')}" class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle error-icon"></i>
+                                            <span th:errors="*{directions}"></span>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Provide clear, step-by-step cooking instructions
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-tags me-2"></i>Categories
+                                        </label>
+                                        <div class="row">
+                                            <div th:each="category : ${availableCategories}" class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" 
+                                                           type="checkbox" 
+                                                           th:id="'category_' + ${category.id}"
+                                                           th:value="${category.id}"
+                                                           th:field="*{categories}">
+                                                    <label class="form-check-label" 
+                                                           th:for="'category_' + ${category.id}"
+                                                           th:text="${category.description}">
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="recipeNotes" class="form-label">
+                                            <i class="fas fa-sticky-note me-2"></i>Notes
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="recipeNotes" 
+                                                  th:field="*{notes.recipeNotes}"
+                                                  th:classappend="${#fields.hasErrors('notes.recipeNotes')} ? 'is-invalid' : ''"
+                                                  rows="4"
+                                                  placeholder="Any additional notes about this recipe..."></textarea>
+                                        <div th:if="${#fields.hasErrors('notes.recipeNotes')}" class="invalid-feedback">
+                                            <i class="fas fa-exclamation-circle error-icon"></i>
+                                            <span th:errors="*{notes.recipeNotes}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ingredients Section -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h5 class="mb-3 text-primary">
+                                        <i class="fas fa-carrot me-2"></i>Ingredients
+                                        <button type="button" class="btn btn-sm btn-outline-primary ms-2" id="addIngredient">
+                                            <i class="fas fa-plus me-1"></i>Add Ingredient
+                                        </button>
+                                    </h5>
+                                    
+                                    <div id="ingredientsContainer">
+                                        <div th:each="ingredient, iterStat : *{recipeIngredients}" 
+                                             th:id="'ingredient-row-' + ${iterStat.index}" 
+                                             class="ingredient-row border rounded p-3 mb-3 bg-light">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-4">
+                                                    <label th:for="'recipeIngredients' + ${iterStat.index} + '.ingredientId'" class="form-label small">
+                                                        <i class="fas fa-carrot me-1"></i>Ingredient
+                                                    </label>
+                                                    <select th:field="*{recipeIngredients[__${iterStat.index}__].ingredientId}" 
+                                                            th:id="'recipeIngredients' + ${iterStat.index} + '.ingredientId'"
+                                                            class="form-select form-select-sm">
+                                                        <option value="">Select ingredient...</option>
+                                                        <option th:each="availableIngredient : ${availableIngredients}" 
+                                                                th:value="${availableIngredient.id}" 
+                                                                th:text="${availableIngredient.description}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label th:for="'recipeIngredients' + ${iterStat.index} + '.amount'" class="form-label small">
+                                                        <i class="fas fa-balance-scale me-1"></i>Amount
+                                                    </label>
+                                                    <input type="number" 
+                                                           th:field="*{recipeIngredients[__${iterStat.index}__].amount}" 
+                                                           th:id="'recipeIngredients' + ${iterStat.index} + '.amount'"
+                                                           class="form-control form-control-sm" 
+                                                           step="0.01" 
+                                                           min="0"
+                                                           placeholder="1.00">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label th:for="'recipeIngredients' + ${iterStat.index} + '.unitOfMeasureId'" class="form-label small">
+                                                        <i class="fas fa-ruler me-1"></i>Unit of Measure
+                                                    </label>
+                                                    <select th:field="*{recipeIngredients[__${iterStat.index}__].unitOfMeasureId}" 
+                                                            th:id="'recipeIngredients' + ${iterStat.index} + '.unitOfMeasureId'"
+                                                            class="form-select form-select-sm">
+                                                        <option value="">Select unit...</option>
+                                                        <option th:each="uom : ${availableUnitsOfMeasure}" 
+                                                                th:value="${uom.id}" 
+                                                                th:text="${uom.description}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <label class="form-label small text-white">.</label>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger d-block remove-ingredient" 
+                                                            title="Remove ingredient">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="noIngredients" class="text-center py-3 text-muted" style="display: none;">
+                                        <i class="fas fa-carrot fa-2x mb-2"></i>
+                                        <p>No ingredients added yet. Click "Add Ingredient" to start building your recipe!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>
+                                            <span th:text="${action}">Create</span> Recipe
+                                        </button>
+                                        <a th:href="@{/recipes}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times me-2"></i>Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Help Text -->
+                <div class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title">
+                            <i class="fas fa-lightbulb me-2 text-warning"></i>Validation Rules
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="mb-0 small">
+                                    <li><strong>Recipe Name:</strong> Required, 3-255 characters</li>
+                                    <li><strong>Directions:</strong> Required field</li>
+                                    <li><strong>Prep Time:</strong> 1-1000 minutes (if specified)</li>
+                                    <li><strong>Cook Time:</strong> 1-1000 minutes (if specified)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="mb-0 small">
+                                    <li><strong>Servings:</strong> 1-100 servings (if specified)</li>
+                                    <li><strong>URL:</strong> Must be valid URL format</li>
+                                    <li><strong>Image:</strong> JPG, PNG, GIF formats, max 5MB</li>
+                                    <li>Fields marked with <span class="required-asterisk">*</span> are required</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="small">
+                            <strong>Tips:</strong> Use clear, descriptive recipe names and detailed step-by-step directions for best results.
+                            <span th:if="${#lists.isEmpty(availableIngredients)}">
+                                <strong>Note:</strong> No ingredients available. 
+                                <a th:href="@{/ingredients/new}" target="_blank" class="text-decoration-none">
+                                    Add ingredients first <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script th:inline="javascript">
+        let ingredientIndex = /*[[${#lists.size(recipe.recipeIngredients)}]]*/ 0;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const addIngredientBtn = document.getElementById('addIngredient');
+            const ingredientsContainer = document.getElementById('ingredientsContainer');
+            const noIngredientsMsg = document.getElementById('noIngredients');
+            
+            // Image upload functionality
+            const imageFileInput = document.getElementById('imageFile');
+            const imageUploadContainer = document.getElementById('imageUploadContainer');
+            const imageUploadPlaceholder = document.getElementById('imageUploadPlaceholder');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const imagePreview = document.getElementById('imagePreview');
+            const removeImageBtn = document.getElementById('removeImageBtn');
+            
+            // Handle file selection and preview
+            imageFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size must be less than 5MB');
+                        imageFileInput.value = '';
+                        return;
+                    }
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select a valid image file');
+                        imageFileInput.value = '';
+                        return;
+                    }
+                    
+                    // Create file reader to preview image
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imageUploadPlaceholder.style.display = 'none';
+                        imagePreviewContainer.style.display = 'block';
+                        imageUploadContainer.classList.add('has-image');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Handle image removal
+            removeImageBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                imageFileInput.value = '';
+                imagePreview.src = '#';
+                imageUploadPlaceholder.style.display = 'block';
+                imagePreviewContainer.style.display = 'none';
+                imageUploadContainer.classList.remove('has-image');
+            });
+            
+            // Prevent form submission when clicking remove button
+            imagePreviewContainer.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Client-side validation enhancement
+            const form = document.getElementById('recipeForm');
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Clear previous custom validation messages
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.setCustomValidity('');
+                });
+                
+                // Additional client-side validation can be added here
+                const description = document.getElementById('description');
+                if (description.value.trim().length < 3) {
+                    description.setCustomValidity('Recipe name must be at least 3 characters long');
+                    isValid = false;
+                }
+                
+                const directions = document.getElementById('directions');
+                if (directions.value.trim() === '') {
+                    directions.setCustomValidity('Directions are required');
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    form.reportValidity();
+                }
+            });
+            
+            // Show/hide no ingredients message
+            function updateNoIngredientsMessage() {
+                const ingredientRows = ingredientsContainer.querySelectorAll('.ingredient-row');
+                if (ingredientRows.length === 0) {
+                    noIngredientsMsg.style.display = 'block';
+                } else {
+                    noIngredientsMsg.style.display = 'none';
+                }
+            }
+            
+            // Add new ingredient row
+            addIngredientBtn.addEventListener('click', function() {
+                const availableIngredients = /*[[${availableIngredients}]]*/ [];
+                const availableUnitsOfMeasure = /*[[${availableUnitsOfMeasure}]]*/ [];
+                
+                const newRow = document.createElement('div');
+                newRow.className = 'ingredient-row border rounded p-3 mb-3 bg-light';
+                newRow.id = 'ingredient-row-' + ingredientIndex;
+                
+                let ingredientOptions = '<option value="">Select ingredient...</option>';
+                availableIngredients.forEach(ing => {
+                    ingredientOptions += `<option value="${ing.id}">${ing.description}</option>`;
+                });
+                
+                let uomOptions = '<option value="">Select unit...</option>';
+                availableUnitsOfMeasure.forEach(uom => {
+                    uomOptions += `<option value="${uom.id}">${uom.description}</option>`;
+                });
+                
+                newRow.innerHTML = `
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <label for="recipeIngredients${ingredientIndex}.ingredientId" class="form-label small">
+                                <i class="fas fa-carrot me-1"></i>Ingredient
+                            </label>
+                            <select name="recipeIngredients[${ingredientIndex}].ingredientId" 
+                                    id="recipeIngredients${ingredientIndex}.ingredientId"
+                                    class="form-select form-select-sm">
+                                ${ingredientOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="recipeIngredients${ingredientIndex}.amount" class="form-label small">
+                                <i class="fas fa-balance-scale me-1"></i>Amount
+                            </label>
+                            <input type="number" 
+                                   name="recipeIngredients[${ingredientIndex}].amount" 
+                                   id="recipeIngredients${ingredientIndex}.amount"
+                                   class="form-control form-control-sm" 
+                                   step="0.01" 
+                                   min="0"
+                                   placeholder="1.00"
+                                   value="1">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="recipeIngredients${ingredientIndex}.unitOfMeasureId" class="form-label small">
+                                <i class="fas fa-ruler me-1"></i>Unit of Measure
+                            </label>
+                            <select name="recipeIngredients[${ingredientIndex}].unitOfMeasureId" 
+                                    id="recipeIngredients${ingredientIndex}.unitOfMeasureId"
+                                    class="form-select form-select-sm">
+                                ${uomOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label small text-white">.</label>
+                            <button type="button" class="btn btn-sm btn-outline-danger d-block remove-ingredient" 
+                                    title="Remove ingredient">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                ingredientsContainer.appendChild(newRow);
+                ingredientIndex++;
+                updateNoIngredientsMessage();
+            });
+            
+            // Remove ingredient row
+            ingredientsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-ingredient')) {
+                    const row = e.target.closest('.ingredient-row');
+                    if (row) {
+                        row.remove();
+                        updateNoIngredientsMessage();
+                    }
+                }
+            });
+            
+            // Initial check
+            updateNoIngredientsMessage();
+            
+            // Auto-focus on recipe name field
+            const descriptionField = document.getElementById('description');
+            if (descriptionField && !descriptionField.value) {
+                descriptionField.focus();
+            }
+            
+            // Real-time validation feedback
+            const validateField = (field, validator) => {
+                field.addEventListener('blur', validator);
+                field.addEventListener('input', () => {
+                    if (field.classList.contains('is-invalid')) {
+                        validator();
+                    }
+                });
+            };
+            
+            // Real-time validation for description
+            validateField(document.getElementById('description'), function() {
+                const field = this;
+                const value = field.value.trim();
+                if (value.length > 0 && value.length < 3) {
+                    field.classList.add('is-invalid');
+                } else if (value.length > 255) {
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Real-time validation for directions
+            validateField(document.getElementById('directions'), function() {
+                const field = this;
+                const value = field.value.trim();
+                if (value.length === 0) {
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Real-time validation for numeric fields
+            const numericFields = ['prepTime', 'cookTime', 'servings'];
+            numericFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    validateField(field, function() {
+                        const value = parseInt(this.value);
+                        const min = parseInt(this.getAttribute('min'));
+                        const max = parseInt(this.getAttribute('max'));
+                        
+                        if (this.value && (isNaN(value) || value < min || value > max)) {
+                            this.classList.add('is-invalid');
+                        } else {
+                            this.classList.remove('is-invalid');
+                        }
+                    });
+                }
+            });
+            
+            // Real-time validation for URL
+            validateField(document.getElementById('url'), function() {
+                const field = this;
+                const value = field.value.trim();
+                
+                if (value && !isValidUrl(value)) {
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // URL validation helper function
+            function isValidUrl(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

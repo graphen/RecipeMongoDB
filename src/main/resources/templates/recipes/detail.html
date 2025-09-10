@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${recipe.description + ' - Recipe App'}">Recipe Details</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-utensils me-2"></i>
+                            Recipe Details
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Basic Recipe Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3" th:text="${recipe.description}">Recipe Name</h5>
+                            </div>
+                        </div>
+                        
+                        <!--  Image -->
+						<div class="row mb-4">
+						    <div class="col-12 text-center">
+						        <img th:src="@{/recipes/{id}/image(id=${recipe.id})}" 
+						             class="img-fluid rounded mb-3" 
+						             style="max-height: 400px;">
+						        <span th:if="${recipe.image == null}" class="text-muted">No image available</span>
+						    </div>
+						</div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-hashtag me-2"></i>ID:</strong>
+                            </div>
+                            <div class="col-sm-9">
+                                <span th:text="${recipe.id}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-chart-bar me-2"></i>Difficulty:</strong>
+                            </div>
+                            <div class="col-sm-9">
+                                <span th:if="${recipe.difficulty != null}" 
+                                      th:text="${recipe.difficulty}" 
+                                      class="badge"
+                                      th:classappend="${recipe.difficulty == 'EASY' ? 'bg-success' : (recipe.difficulty == 'MODERATE' ? 'bg-warning' : 'bg-danger')}">
+                                </span>
+                                <span th:if="${recipe.difficulty == null}" class="text-muted">Not specified</span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-clock me-2"></i>Prep Time:</strong>
+                            </div>
+                            <div class="col-sm-3">
+                                <span th:if="${recipe.prepTime != null}" th:text="${recipe.prepTime} + ' minutes'"></span>
+                                <span th:if="${recipe.prepTime == null}" class="text-muted">Not specified</span>
+                            </div>
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-fire me-2"></i>Cook Time:</strong>
+                            </div>
+                            <div class="col-sm-3">
+                                <span th:if="${recipe.cookTime != null}" th:text="${recipe.cookTime} + ' minutes'"></span>
+                                <span th:if="${recipe.cookTime == null}" class="text-muted">Not specified</span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-users me-2"></i>Servings:</strong>
+                            </div>
+                            <div class="col-sm-3">
+                                <span th:if="${recipe.servings != null}" th:text="${recipe.servings}"></span>
+                                <span th:if="${recipe.servings == null}" class="text-muted">Not specified</span>
+                            </div>
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-book me-2"></i>Source:</strong>
+                            </div>
+                            <div class="col-sm-3">
+                                <span th:if="${recipe.source != null and !#strings.isEmpty(recipe.source)}" th:text="${recipe.source}"></span>
+                                <span th:if="${recipe.source == null or #strings.isEmpty(recipe.source)}" class="text-muted">Not specified</span>
+                            </div>
+                        </div>
+
+                        <div th:if="${recipe.url != null and !#strings.isEmpty(recipe.url)}" class="row mb-3">
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-link me-2"></i>URL:</strong>
+                            </div>
+                            <div class="col-sm-9">
+                                <a th:href="${recipe.url}" th:text="${recipe.url}" target="_blank" class="text-decoration-none"></a>
+                            </div>
+                        </div>
+
+                        <!-- Categories -->
+                        <div th:if="${recipe.categories != null and !#lists.isEmpty(recipe.categories)}" class="row mb-4">
+                            <div class="col-sm-3">
+                                <strong><i class="fas fa-tags me-2"></i>Categories:</strong>
+                            </div>
+                            <div class="col-sm-9">
+                                <span th:each="categoryId, iterStat : ${recipe.categories}" class="badge bg-secondary me-1">
+                                    Category <span th:text="${categoryId}"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Ingredients -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6><i class="fas fa-carrot me-2"></i>Ingredients (<span th:text="${ingredientCount}"></span>)</h6>
+                                <hr>
+                                
+                                <div th:if="${recipe.recipeIngredients == null or #lists.isEmpty(recipe.recipeIngredients)}" class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>No ingredients specified
+                                </div>
+                                
+                                <div th:if="${recipe.recipeIngredients != null and !#lists.isEmpty(recipe.recipeIngredients)}">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ingredient</th>
+                                                    <th>Amount</th>
+                                                    <th>Unit</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="ingredient : ${recipe.recipeIngredients}">
+                                                    <td th:text="${ingredient.ingredientDescription}"></td>
+                                                    <td th:text="${ingredient.amount}"></td>
+                                                    <td th:text="${ingredient.unitOfMeasureDescription}"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Directions -->
+                        <div th:if="${recipe.directions != null and !#strings.isEmpty(recipe.directions)}" class="row mb-4">
+                            <div class="col-12">
+                                <h6><i class="fas fa-list-ol me-2"></i>Directions</h6>
+                                <hr>
+                                <div class="bg-light p-3 rounded">
+                                    <pre th:text="${recipe.directions}" class="mb-0" style="white-space: pre-wrap; font-family: inherit;"></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div th:if="${recipe.notes != null and recipe.notes.recipeNotes != null and !#strings.isEmpty(recipe.notes.recipeNotes)}" class="row mb-4">
+                            <div class="col-12">
+                                <h6><i class="fas fa-sticky-note me-2"></i>Notes</h6>
+                                <hr>
+                                <div class="bg-light p-3 rounded">
+                                    <pre th:text="${recipe.notes.recipeNotes}" class="mb-0" style="white-space: pre-wrap; font-family: inherit;"></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:href="@{/recipes/{id}/edit(id=${recipe.id})}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                            
+                            <a th:href="@{/recipes/{id}/delete(id=${recipe.id})}" 
+                               class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </a>
+                            
+                            <a th:href="@{/recipes}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recipe Stats -->
+                <div class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title text-primary">
+                            <i class="fas fa-chart-pie me-2"></i>Recipe Statistics
+                        </h6>
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="p-2">
+                                    <i class="fas fa-carrot fa-2x text-warning mb-2"></i>
+                                    <div class="h5 mb-0" th:text="${ingredientCount}">0</div>
+                                    <small class="text-muted">Ingredients</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-2">
+                                    <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                                    <div class="h5 mb-0">
+                                        <span th:if="${recipe.prepTime != null and recipe.cookTime != null}" 
+                                              th:text="${recipe.prepTime + recipe.cookTime}"></span>
+                                        <span th:if="${recipe.prepTime == null and recipe.cookTime != null}" 
+                                              th:text="${recipe.cookTime}"></span>
+                                        <span th:if="${recipe.prepTime != null and recipe.cookTime == null}" 
+                                              th:text="${recipe.prepTime}"></span>
+                                        <span th:if="${recipe.prepTime == null and recipe.cookTime == null}">-</span>
+                                    </div>
+                                    <small class="text-muted">Total Minutes</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-2">
+                                    <i class="fas fa-users fa-2x text-success mb-2"></i>
+                                    <div class="h5 mb-0">
+                                        <span th:if="${recipe.servings != null}" th:text="${recipe.servings}"></span>
+                                        <span th:if="${recipe.servings == null}">-</span>
+                                    </div>
+                                    <small class="text-muted">Servings</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-2">
+                                    <i class="fas fa-chart-bar fa-2x text-danger mb-2"></i>
+                                    <div class="h5 mb-0">
+                                        <span th:if="${recipe.difficulty != null}" th:text="${recipe.difficulty}"></span>
+                                        <span th:if="${recipe.difficulty == null}">-</span>
+                                    </div>
+                                    <small class="text-muted">Difficulty</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

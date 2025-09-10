@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${category.description + ' - Recipe App'}">Category Details</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-tags me-2"></i>
+                            Category Details
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Category Information -->
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-hashtag me-2"></i>ID:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${category.id}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-tag me-2"></i>Description:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${category.description}" class="fs-5"></span>
+                            </div>
+                        </div>
+
+                        <!-- Usage Information -->
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-utensils me-2"></i>Recipe Usage:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:if="${recipeCount == 0}" class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Not used in any recipes
+                                </span>
+                                <span th:if="${recipeCount == 1}" class="badge bg-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Used in 1 recipe
+                                </span>
+                                <span th:if="${recipeCount > 1}" class="badge bg-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Used in <span th:text="${recipeCount}"></span> recipes
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:href="@{/categories/{id}/edit(id=${category.id})}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                            
+                            <a th:href="@{/categories/{id}/delete(id=${category.id})}" 
+                               class="btn btn-danger"
+                               th:classappend="${recipeCount > 0} ? 'disabled' : ''">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </a>
+                            
+                            <a th:href="@{/categories}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Warning -->
+                <div th:if="${recipeCount > 0}" class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Usage Information
+                        </h6>
+                        <p class="mb-0 small">
+                            This category is currently being used in 
+                            <strong th:text="${recipeCount}"></strong> 
+                            <span th:text="${recipeCount == 1 ? 'recipe' : 'recipes'}"></span>.
+                            You cannot delete it until it's removed from all recipes.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Safe to Delete -->
+                <div th:if="${recipeCount == 0}" class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title text-success">
+                            <i class="fas fa-check-circle me-2"></i>Deletion Status
+                        </h6>
+                        <p class="mb-0 small">
+                            This category is not used in any recipes and can be safely deleted.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

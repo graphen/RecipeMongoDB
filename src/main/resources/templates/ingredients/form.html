@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${action + ' Ingredient - Recipe App'}">Recipe App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-carrot me-2"></i>
+                            <span th:text="${action}">Create</span> Ingredient
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Error Message -->
+                        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span th:text="${errorMessage}"></span>
+                        </div>
+
+                        <form th:object="${ingredient}" th:action="@{/ingredients}" method="post">
+                            <!-- Hidden ID field for editing -->
+                            <input type="hidden" th:field="*{id}">
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-tag me-2"></i>Description
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="description" 
+                                       th:field="*{description}"
+                                       th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''"
+                                       placeholder="Enter ingredient description"
+                                       required>
+                                <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback">
+                                    <span th:errors="*{description}"></span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Enter a clear, descriptive name for the ingredient
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    <span th:text="${action}">Create</span> Ingredient
+                                </button>
+                                <a th:href="@{/ingredients}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Help Text -->
+                <div class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title">
+                            <i class="fas fa-lightbulb me-2 text-warning"></i>Tips
+                        </h6>
+                        <ul class="mb-0 small">
+                            <li>Use clear, descriptive names (e.g., "Fresh Basil", "Extra Virgin Olive Oil")</li>
+                            <li>Be consistent with naming conventions</li>
+                            <li th:if="${action == 'Create'}">Check if the ingredient already exists before creating</li>
+                            <li th:if="${action == 'Edit'}">Changes will affect all recipes using this ingredient</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-focus on description field
+        document.addEventListener('DOMContentLoaded', function() {
+            const descriptionField = document.getElementById('description');
+            if (descriptionField && !descriptionField.value) {
+                descriptionField.focus();
+            }
+        });
+    </script>
+</body>
+</html>

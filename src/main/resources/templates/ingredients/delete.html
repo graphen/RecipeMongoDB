@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Ingredient - Recipe App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Can Delete -->
+                <div th:if="${canDelete}" class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Confirm Delete
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-warning me-2"></i>
+                            <strong>Warning!</strong> This action cannot be undone.
+                        </div>
+
+                        <p class="mb-4">
+                            Are you sure you want to delete the ingredient 
+                            <strong th:text="${ingredient.description}"></strong>?
+                        </p>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-hashtag me-2"></i>ID:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${ingredient.id}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-tag me-2"></i>Description:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${ingredient.description}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-utensils me-2"></i>Recipe Usage:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Not used in any recipes
+                                </span>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/ingredients/{id}/delete(id=${ingredient.id})}" method="post" class="d-inline">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash me-2"></i>Yes, Delete Ingredient
+                                </button>
+                                <a th:href="@{/ingredients/{id}(id=${ingredient.id})}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Cannot Delete -->
+                <div th:if="${!canDelete}" class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Cannot Delete Ingredient
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-ban me-2"></i>
+                            <strong>Deletion Not Allowed!</strong> This ingredient is currently in use.
+                        </div>
+
+                        <p class="mb-4">
+                            The ingredient <strong th:text="${ingredient.description}"></strong> 
+                            cannot be deleted because it is currently being used in recipes.
+                        </p>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-hashtag me-2"></i>ID:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${ingredient.id}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-tag me-2"></i>Description:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span th:text="${ingredient.description}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-sm-4">
+                                <strong><i class="fas fa-utensils me-2"></i>Recipe Usage:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Used in <span th:text="${recipeCount}"></span> 
+                                    <span th:text="${recipeCount == 1 ? 'recipe' : 'recipes'}"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:href="@{/ingredients/{id}/edit(id=${ingredient.id})}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Edit Instead
+                            </a>
+                            <a th:href="@{/ingredients/{id}(id=${ingredient.id})}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="card mt-3">
+                    <div class="card-body bg-light">
+                        <h6 class="card-title">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            <span th:text="${canDelete ? 'Delete Information' : 'How to Delete This Ingredient'}"></span>
+                        </h6>
+                        <div th:if="${canDelete}">
+                            <p class="mb-0 small">
+                                This ingredient is not used in any recipes and can be safely deleted. 
+                                This action cannot be undone, so please confirm your decision.
+                            </p>
+                        </div>
+                        <div th:if="${!canDelete}">
+                            <p class="mb-2 small">
+                                To delete this ingredient, you must first:
+                            </p>
+                            <ol class="mb-0 small">
+                                <li>Remove this ingredient from all recipes that use it, or</li>
+                                <li>Delete the recipes that use this ingredient</li>
+                            </ol>
+                            <p class="mt-2 mb-0 small text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                <strong>Tip:</strong> You can edit the ingredient name instead if you want to rename it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Add confirmation dialog for delete action
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteForm = document.querySelector('form[method="post"]');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function(e) {
+                    const ingredientName = /*[[${ingredient.description}]]*/ 'this ingredient';
+                    if (!confirm(`Are you absolutely sure you want to delete "${ingredientName}"? This action cannot be undone.`)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

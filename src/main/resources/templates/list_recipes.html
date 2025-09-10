@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Recipes</title>
+    <meta charset="UTF-8" />
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.7/css/bootstrap.min.css}">
+	<!-- Latest compiled and minified JavaScript -->
+	<script th:src="@{/webjars/bootstrap/5.3.7/js/bootstrap.min.js}"></script> 
+	<!-- jquery -->
+	<script th:src="@{/webjars/jquery/3.6.0/jquery.min.js}"></script> 
+</head>
+<body class="bg-light">
+  <div class="container mt-4">
+    <h2 class="text-center mb-5">Recipe List</h2>
+    
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+      <div class="card shadow h-100 border-0">
+        <table class="table table-striped table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>View</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="recipe : ${recipes}">
+              <td th:text="${recipe.id}"></td>
+              <td th:text="${recipe.description}"></td>
+              <td>
+                <a th:href="@{/recipes/{id}(id=${recipe.id})}" class="btn btn-sm btn-primary">View</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+
+</html>
